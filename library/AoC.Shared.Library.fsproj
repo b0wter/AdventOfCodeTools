@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Shared.fs" />
+    <Compile Include="Directions.fs" />
+    <Compile Include="Neighbors.fs" />
+    <Compile Include="Grid.fs" />
+    <Compile Include="Inputs.fs" />
+    <Compile Include="Permutations.fs" />
+    <Compile Include="Combinations.fs" />
+    <Compile Include="Paths.fs" />
+  </ItemGroup>
+
+</Project>
