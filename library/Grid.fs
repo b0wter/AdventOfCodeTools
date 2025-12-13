@@ -76,11 +76,7 @@ let where (predicate: 'a -> bool) (grid: 'a[,]) =
             if grid[y, x] |> predicate then ({ X = x; Y = y }, grid[y,x])
     }
     
-    (*
-    [0..(width * height - 1)]
-    |> List.map (fun i -> grid[i / width, i % width])
-    |> List.where predicate
-    *)
+let filter = where
             
     
 /// <summary>
@@ -320,8 +316,8 @@ let find<'a> (predicate: 'a -> bool) (grid: 'a[,]) =
     let y = index / width
     let x = index % width
     { Point2D.X = x; Point2D.Y = y }
-            
-            
+    
+    
 /// <summary>
 /// Will step into the given direction until the <paramref name="predicate"/> no longer holds.
 /// Returns the last point as the first list element
@@ -438,6 +434,35 @@ let createDefaultColorer<'a when 'a: equality> () : GridColorer<'a> =
         colorsDict[s.Value])
 
 
+let printWith<'a, 'b> (mapper: 'a -> 'b) (colorer: GridColorer<'a>) (grid: 'a[,]) =
+    let cols = grid |> width
+    do printf "  "
+    do [0..cols-1] |> List.iter (fun i ->
+        Console.ForegroundColor <- colors[(i / 10 + 6) % colors.Length]
+        printf "%i" (i%10))
+    do printfn ""
+    do Console.ResetColor()
+    do printfn " ┏%s" (String('━', cols))
+    grid |> flatten |> Array.iteri (fun index value ->
+        let y = index / cols
+        let x = index % cols
+        
+        if x = 0 then
+            do Console.ForegroundColor <- colors[(y / 10 + 6) % colors.Length]
+            do Console.Write(y % 10)
+            do Console.ResetColor()
+            do Console.Write('┃')
+        
+        do Console.ForegroundColor <- ({| Value = value; X = x; Y = y |} |> colorer)
+        let isNewLine = index % cols = (cols-1) && index > 0
+        if isNewLine then
+            Console.WriteLine(value |> mapper)
+        else Console.Write(value |> mapper)
+        do Console.Out.Flush()
+        )
+    do Console.ResetColor()
+
+
 let print<'a> (colorer: GridColorer<'a>) (grid: 'a[,]) =
     let cols = grid |> width
     do printf "  "
@@ -470,3 +495,90 @@ let print<'a> (colorer: GridColorer<'a>) (grid: 'a[,]) =
 let transpose (grid: 'a[,]) =
     // switch dimensions because we transpose
     Array2D.init (grid |> width) (grid |> height) (fun y x -> grid |> at (x,y))
+    
+    
+/// <summary>
+/// Extracts a single row from a 2d array (grid)
+/// </summary>
+/// <param name="n">Row to extract</param>
+/// <param name="grid">Grid to take the row from</param>
+let row n (grid: 'a[,]) =
+    let width = grid |> width
+    Array.init width (fun i -> grid |> at (n, i))
+    
+    
+/// <summary>
+/// Extracts a single col from a 2d array (grid)
+/// </summary>
+/// <param name="n">Column to extract</param>
+/// <param name="grid">Grid to take the row from</param>
+let col n (grid: 'a[,]) =
+    let height = grid |> height
+    Array.init height (fun i -> grid |> at (i, n))
+    
+    
+/// <summary>
+/// Creates a two-dimensional array of chars from an input string.
+/// </summary>
+/// <exception cref="Exception">If there are lines in the string with different lengths</exception>
+let fromString (input: string) =
+    let lines = input |> String.splitByStringAndTrim Environment.NewLine
+    if lines |> Array.exists (fun line -> line.Length <> lines[0].Length) then failwith "Cannot create grid from string with uneven character count per lines"
+    let asChars = lines |> Array.map _.ToCharArray()
+    createWith lines.Length lines[0].Length (fun y x -> asChars[y][x])
+    
+    
+/// <summary>
+/// Mirrors a grid on the horizontal axis
+/// </summary>
+/// <example>
+/// Original:<br/>
+///   1 2<br/>
+///   3 4<br/>
+/// Output:<br/>
+///   3 4<br/>
+///   1 2<br/>
+/// </example>
+let mirrorHorizontal<'a> (grid: 'a array2d) : 'a array2d =
+    let height = grid |> height
+    let width = grid |> width
+    createWith height width (fun y x -> grid[height - y - 1, x])
+    
+    
+/// <summary>
+/// Mirrors a grid on the vertical axis
+/// </summary>
+/// <example>
+/// Original:<br/>
+///   1 2<br/>
+///   3 4<br/>
+/// Output:<br/>
+///   2 1<br/>
+///   4 3<br/>
+/// </example>
+let mirrorVertical<'a> (grid: 'a array2d) : 'a array2d =
+    let height = grid |> height
+    let width = grid |> width
+    createWith height width (fun y x -> grid[y, width - x - 1])
+
+
+/// <summary>
+/// Rotates a grid by 90 degrees
+/// </summary>
+/// <example>
+/// Original:<br/>
+///   1 2<br/>
+///   3 4<br/>
+/// Output:<br/>
+///   3 1<br/>
+///   4 2<br/>
+/// </example>
+let rotate90<'a> (grid: 'a array2d) : 'a array2d =
+    let height = grid |> height
+    let width = grid |> width
+    createWith
+        height
+        width
+        (fun y x ->
+            grid[y,x]
+        )

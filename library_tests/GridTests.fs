@@ -334,3 +334,72 @@ let ``Transposing a grid works properly`` () =
     transposed |> Grid.at (1,0) |> should equal 2
     transposed |> Grid.at (1,1) |> should equal 4
     transposed |> Grid.at (1,2) |> should equal 6
+
+
+[<Fact>]
+let ``Taking a row from a grid should return the requested row`` () =
+    let grid = createCounterGrid 3 2
+    
+    let first = grid |> Grid.row 0
+    let second = grid |> Grid.row 1
+    let third = grid |> Grid.row 2
+    
+    first |> should equal [| 1; 2 |]
+    second |> should equal [| 3; 4 |]
+    third |> should equal [| 5; 6 |]
+
+
+[<Fact>]
+let ``Taking a column from a grid should return the requested column`` () =
+    let grid = createCounterGrid 2 3
+    
+    let first = grid |> Grid.col 0
+    let second = grid |> Grid.col 1
+    let third = grid |> Grid.col 2
+    
+    first |> should equal [| 1; 4 |]
+    second |> should equal [| 2; 5 |]
+    third |> should equal [| 3; 6 |]
+
+
+[<Fact>]
+let ``Creating a grid from a string returns a correctly parsed grid`` () =
+    let input = $"abcd%s{Environment.NewLine}efgh"
+    
+    let grid = input |> Grid.fromString
+    
+    grid |> Grid.width |> should equal 4
+    grid |> Grid.height |> should equal 2
+    
+    grid |> Grid.at (0,0) |> should equal 'a'
+    grid |> Grid.at (0,1) |> should equal 'b'
+    grid |> Grid.at (0,2) |> should equal 'c'
+    grid |> Grid.at (0,3) |> should equal 'd'
+    grid |> Grid.at (1,0) |> should equal 'e'
+    grid |> Grid.at (1,1) |> should equal 'f'
+    grid |> Grid.at (1,2) |> should equal 'g'
+    grid |> Grid.at (1,3) |> should equal 'h'
+
+
+[<Fact>]
+let ``Mirroring a grid on the horizontal axis returns proper result`` () =
+    let grid = createCounterGrid 2 2
+    
+    let mirrored = grid |> Grid.mirrorHorizontal
+    
+    mirrored |> Grid.at (0,0) |> should equal 3
+    mirrored |> Grid.at (0,1) |> should equal 4
+    mirrored |> Grid.at (1,0) |> should equal 1
+    mirrored |> Grid.at (1,1) |> should equal 2
+
+
+[<Fact>]
+let ``Mirroring a grid on the vertical axis returns proper result`` () =
+    let grid = createCounterGrid 2 2
+    
+    let mirrored = grid |> Grid.mirrorVertical
+    
+    mirrored |> Grid.at (0,0) |> should equal 2
+    mirrored |> Grid.at (0,1) |> should equal 1
+    mirrored |> Grid.at (1,0) |> should equal 4
+    mirrored |> Grid.at (1,1) |> should equal 3
