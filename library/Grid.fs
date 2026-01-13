@@ -573,12 +573,34 @@ let mirrorVertical<'a> (grid: 'a array2d) : 'a array2d =
 ///   3 1<br/>
 ///   4 2<br/>
 /// </example>
-let rotate90<'a> (grid: 'a array2d) : 'a array2d =
+let rotateClockwise<'a> (grid: 'a array2d) : 'a array2d =
     let height = grid |> height
     let width = grid |> width
     createWith
         height
         width
         (fun y x ->
-            grid[y,x]
+            grid[height - 1 - x,y]
+        )
+ 
+ 
+/// <summary>
+/// Rotates a grid by 90 degrees counter-clockwise
+/// </summary>
+/// <example>
+/// Original:<br/>
+///    1 2<br/>
+///    3 4<br/>
+/// Output:<br/>
+///    2 4<br/>
+///    1 3<br/>
+/// </example>
+let rotateCounterClockwise<'a> (grid: 'a array2d) : 'a array2d =
+    let height = grid |> height
+    let width = grid |> width
+    createWith
+        height
+        width
+        (fun y x ->
+            grid[x, width - 1 - y]
         )

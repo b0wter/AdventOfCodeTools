@@ -403,3 +403,57 @@ let ``Mirroring a grid on the vertical axis returns proper result`` () =
     mirrored |> Grid.at (0,1) |> should equal 1
     mirrored |> Grid.at (1,0) |> should equal 4
     mirrored |> Grid.at (1,1) |> should equal 3
+
+
+[<Fact>]
+let ``Rotating a grid 90 degrees clockwise rotates the grid correctly`` () =
+    let grid = createCounterGrid 3 3
+    (*
+        1 2 3
+        4 5 6
+        7 8 9
+    *)
+    let rotated = grid |> Grid.rotateClockwise
+    (*
+        7 4 1
+        8 5 2
+        9 6 3
+    *)
+    rotated |> Grid.at (0,0) |> should equal 7
+    rotated |> Grid.at (0,1) |> should equal 4
+    rotated |> Grid.at (0,2) |> should equal 1
+
+    rotated |> Grid.at (1,0) |> should equal 8
+    rotated |> Grid.at (1,1) |> should equal 5
+    rotated |> Grid.at (1,2) |> should equal 2
+
+    rotated |> Grid.at (2,0) |> should equal 9
+    rotated |> Grid.at (2,1) |> should equal 6
+    rotated |> Grid.at (2,2) |> should equal 3
+
+
+[<Fact>]
+let ``Rotating a grid 90 degrees counter-clockwise rotates the grid correctly`` () =
+    let grid = createCounterGrid 3 3
+    (*
+        1 2 3
+        4 5 6
+        7 8 9
+    *)
+    let rotated = grid |> Grid.rotateCounterClockwise
+    (*
+        3 6 9
+        2 5 8
+        1 4 7
+    *)
+    rotated |> Grid.at (0,0) |> should equal 3
+    rotated |> Grid.at (0,1) |> should equal 6
+    rotated |> Grid.at (0,2) |> should equal 9
+
+    rotated |> Grid.at (1,0) |> should equal 2
+    rotated |> Grid.at (1,1) |> should equal 5
+    rotated |> Grid.at (1,2) |> should equal 8
+
+    rotated |> Grid.at (2,0) |> should equal 1
+    rotated |> Grid.at (2,1) |> should equal 4
+    rotated |> Grid.at (2,2) |> should equal 7
