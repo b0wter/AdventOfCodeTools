@@ -13,37 +13,43 @@ let private createCounterGrid height width =
             c
     Grid.createWith height width counter
 
+
 [<Fact>]
 let ``Creating a grid with width 10 creates a grid of width 10`` () =
     let grid = Grid.create 2 10 1
     let width = grid |> Grid.width
     width |> should equal 10
-    
+   
+  
 [<Fact>]
 let ``Creating a grid with height 10 creates a grid of height 10`` () =
     let grid = Grid.create 10 2 1
     let height = grid |> Grid.height
     height |> should equal 10
-    
+   
+   
 [<Fact>]
 let ``Flattening an array returns a one-dimensional order in proper order`` () =
     let grid = createCounterGrid 2 2
     let flattened = grid |> Grid.flatten
     flattened |> should equal [|1; 2; 3; 4|]
-    
+  
+  
 [<Fact>]
 let ``Mapping a grid changes every cell`` () =
     let grid = Grid.create 3 2 1
     let updated = grid |> Grid.map (fun _ _ _ -> 2)
     updated |> Grid.flatten |> should equal [|2; 2; 2; 2; 2; 2|]
-    
+ 
+
 [<Fact>]
 let ``Converting a grid to string returns a pretty formatted string`` () =
     let grid = createCounterGrid 3 2
     let prettyPrinted = grid |> Grid.toString
     
     prettyPrinted |> should equal $"1 2{Environment.NewLine}3 4{Environment.NewLine}5 6"
-    
+
+
 [<Fact>]
 let ``getNeighborsWith returns correct neighbors`` () =
     (*
@@ -65,7 +71,8 @@ let ``getNeighborsWith returns correct neighbors`` () =
         }
 
     neighbors |> should equal expected
-    
+
+
 [<Fact>]
 let ``getNeighborsWith with wrapping returns correct neighbors`` () =
     (*
@@ -87,7 +94,8 @@ let ``getNeighborsWith with wrapping returns correct neighbors`` () =
         }
 
     neighbors |> should equal expected
-    
+
+
 [<Fact>]
 let ``getNeighborsWith on left edge wraps properly`` () =
     (*
@@ -109,7 +117,8 @@ let ``getNeighborsWith on left edge wraps properly`` () =
         }
 
     neighbors |> should equal expected
-    
+
+
 [<Fact>]
 let ``getNeighborsWith on right edge wraps properly`` () =
     (*
@@ -131,7 +140,8 @@ let ``getNeighborsWith on right edge wraps properly`` () =
         }
 
     neighbors |> should equal expected
-    
+
+
 [<Fact>]
 let ``getNeighborsWith on top edge wraps properly`` () =
     (*
@@ -153,7 +163,8 @@ let ``getNeighborsWith on top edge wraps properly`` () =
         }
 
     neighbors |> should equal expected
-    
+
+
 [<Fact>]
 let ``getNeighborsWith on bottom edge wraps properly`` () =
     (*
@@ -176,6 +187,7 @@ let ``getNeighborsWith on bottom edge wraps properly`` () =
 
     neighbors |> should equal expected
 
+
 type StepSampleData = { Width: int; Height: int; FromX: int; FromY: int; Direction: Directions.Simple }
 let stepSampleData : obj[] seq =
     seq {
@@ -183,11 +195,13 @@ let stepSampleData : obj[] seq =
         //yield [|{ Width = 3; Height = 3; FromX = 1; FromY = 1; Direction = Shared.SimpleDirections.Up }|]
     }
 
+
 type ClassDataBase(generator : obj [] seq) = 
     interface seq<obj []> with
         member this.GetEnumerator() = generator.GetEnumerator()
         member this.GetEnumerator() = 
             generator.GetEnumerator() :> System.Collections.IEnumerator
+
 
 type OutOfBoundsStepTestData() =
     inherit ClassDataBase([
@@ -219,7 +233,8 @@ type OutOfBoundsStepTestData() =
         [| 3; 3; 0; 1; Directions.Simple.Left;  2; { Shared.Point2D.X = 0; Shared.Point2D.Y = 1 }; { Shared.Point2D.X = 1; Shared.Point2D.Y = 1 } |]
         [| 3; 3; 0; 2; Directions.Simple.Left;  2; { Shared.Point2D.X = 0; Shared.Point2D.Y = 2 }; { Shared.Point2D.X = 1; Shared.Point2D.Y = 2 } |]
     ])
-    
+
+ 
 type OutOfBoundsDiagonalStepTestData() =
     inherit ClassDataBase([
         [| 3; 3; 0; 0; Directions.WithDiagonals.UpLeft;    1; { Shared.Point2D.X = 0; Shared.Point2D.Y = 0 }; { Shared.Point2D.X = 2; Shared.Point2D.Y = 2 } |]
@@ -233,47 +248,54 @@ type OutOfBoundsDiagonalStepTestData() =
         [| 3; 3; 2; 0; Directions.WithDiagonals.UpRight;   2; { Shared.Point2D.X = 2; Shared.Point2D.Y = 0 }; { Shared.Point2D.X = 1; Shared.Point2D.Y = 1 } |]
     ])
 
+
 [<Theory>]
 [<ClassData(typedefof<OutOfBoundsStepTestData>)>]
 let ``Stepping out of bounds with Fail-edge-handling throws an out of bounds exception`` (height: int) (width: int) (fromX: int) (fromY: int) (direction: Directions.Simple) (stepSize: int) _ _ : unit =
     let grid = createCounterGrid height width
     let action = fun () -> Grid.step Directions.simpleStepGenerator Grid.EdgeHandling.Fail { X = fromX; Y = fromY } stepSize direction grid |> ignore
     Assert.Throws<IndexOutOfRangeException>(action) |> ignore
-    
+
+
 [<Theory>]
 [<ClassData(typedefof<OutOfBoundsStepTestData>)>]
 let ``Stepping out of bounds with Stop-edge-handling does not move out of bounds`` (height: int) (width: int) (fromX: int) (fromY: int) (direction: Directions.Simple) (stepSize: int) (expected: Shared.Point2D<int>) _ : unit =
     let grid = createCounterGrid height width
     let newPosition, _ = Grid.step Directions.simpleStepGenerator Grid.EdgeHandling.Stop { X = fromX; Y = fromY } stepSize direction grid |> Option.get
     newPosition |> should equal expected
-    
+
+
 [<Theory>]
 [<ClassData(typedefof<OutOfBoundsStepTestData>)>]
 let ``Stepping out of bounds with Wrap-edge-handling does not move out of bounds`` (height: int) (width: int) (fromX: int) (fromY: int) (direction: Directions.Simple) (stepSize: int) _ (expected: Shared.Point2D<int>) : unit =
     let grid = createCounterGrid height width
     let newPosition, _ = Grid.step Directions.simpleStepGenerator Grid.EdgeHandling.Wrap { X = fromX; Y = fromY } stepSize direction grid |> Option.get
     newPosition |> should equal expected
-    
+
+
 [<Theory>]
 [<ClassData(typedefof<OutOfBoundsDiagonalStepTestData>)>]
 let ``Stepping out of bounds diagonally with Fail-edge-handling throws an out of bounds exception`` (height: int) (width: int) (fromX: int) (fromY: int) (direction: Directions.WithDiagonals) (stepSize: int) _ _: unit =
     let grid = createCounterGrid height width
     let action = fun () -> Grid.step Directions.withDiagonalsStepGenerator Grid.EdgeHandling.Fail { X = fromX; Y = fromY } stepSize direction grid |> ignore
     Assert.Throws<IndexOutOfRangeException>(action) |> ignore
-    
+
+ 
 [<Theory>]
 [<ClassData(typedefof<OutOfBoundsDiagonalStepTestData>)>]
 let ``Stepping out of bounds diagonally with Stop-edge-handling does not move out of bounds`` (height: int) (width: int) (fromX: int) (fromY: int) (direction: Directions.WithDiagonals) (stepSize: int) (expected: Shared.Point2D<int>) _ : unit =
     let grid = createCounterGrid height width
     let newPosition, _ = Grid.step Directions.withDiagonalsStepGenerator Grid.EdgeHandling.Stop { X = fromX; Y = fromY } stepSize direction grid |> Option.get
     newPosition |> should equal expected
-    
+
+
 [<Theory>]
 [<ClassData(typedefof<OutOfBoundsDiagonalStepTestData>)>]
 let ``Stepping out of bounds diagonally with Wrap-edge-handling does not move out of bounds`` (height: int) (width: int) (fromX: int) (fromY: int) (direction: Directions.WithDiagonals) (stepSize: int) _ (expected: Shared.Point2D<int>) : unit =
     let grid = createCounterGrid height width
     let newPosition, _ = Grid.step Directions.withDiagonalsStepGenerator Grid.EdgeHandling.Wrap { X = fromX; Y = fromY } stepSize direction grid |> Option.get
     newPosition |> should equal expected
+
 
 [<Theory>]
 [<InlineData(1,1,2,2,2)>]
@@ -284,8 +306,8 @@ let ``Calculating the Manhattan distance produces correct results`` (fromX: int,
     let result = Grid.manhattanDistance { X = fromX; Y = fromY } { X = toX; Y = toY }
     
     result |> should equal expected
-    
-    
+
+
 [<Fact>]
 let ``Filtering a grid with 'where' returns all matching elements`` () =
     let grid = createCounterGrid 3 3
@@ -299,8 +321,8 @@ let ``Filtering a grid with 'where' returns all matching elements`` () =
         { Shared.Point2D.X = 2; Shared.Point2D.Y = 1}, 6
         { Shared.Point2D.X = 1; Shared.Point2D.Y = 2}, 8
     ]
-    
-    
+
+
 [<Fact>]
 let ``Stepping with predicate returns the correct steps`` () =
     let grid = createCounterGrid 1 10
@@ -316,8 +338,8 @@ let ``Stepping with predicate returns the correct steps`` () =
     let result = grid |> Grid.stepWhile predicate Directions.simpleStepGenerator Grid.EdgeHandling.Fail { X = 0; Y = 0 } Directions.Right
     
     result |> should haveLength 3
-    
-    
+
+ 
 [<Fact>]
 let ``Transposing a grid works properly`` () =
     // create with height 2 and width 3
